@@ -8,7 +8,7 @@ import { addEggTransaction, getEggTransactions, deleteEggTransaction } from '@/l
 import type { EggTransaction, EggCategory } from '@/types'
 import { MdOutlineEgg, MdDelete } from 'react-icons/md'
 import { format } from 'date-fns'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 const CATEGORIES: EggCategory[] = ['white-egg', 'brown-egg', 'country-egg', 'broken-egg', 'other']
 
@@ -27,6 +27,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function EggsPage() {
+  const { t: te } = useLang()
   const [transactions, setTransactions] = useState<EggTransaction[]>([])
   const [loading, setLoading]           = useState(true)
   const [saving, setSaving]             = useState(false)

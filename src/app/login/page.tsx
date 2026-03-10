@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { GiChicken } from 'react-icons/gi'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 export default function LoginPage() {
+  const { t: te } = useLang()
   const { login } = useAuth()
   const router    = useRouter()
 

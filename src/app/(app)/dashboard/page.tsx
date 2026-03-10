@@ -10,10 +10,10 @@ import { MdOutlineEgg } from 'react-icons/md'
 import { TbCurrencyRupee } from 'react-icons/tb'
 import { BiSolidPackage } from 'react-icons/bi'
 import { GiBarn, GiFishingBoat } from 'react-icons/gi'
-import { format, parseISO, startOfMonth } from 'date-fns'
+import { format, parseISO, startOfMonth, subMonths, isAfter, isBefore } from 'date-fns'
 import Link from 'next/link'
 import { clsx } from 'clsx'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 function buildChartData(
   transactions: Array<{ date: string; type: string; quantityKg?: number; quantityTrays?: number }>,
@@ -31,6 +31,7 @@ function buildChartData(
 }
 
 export default function DashboardPage() {
+  const { t: te } = useLang()
   const [feedTx, setFeedTx]       = useState<FeedTransaction[]>([])
   const [eggTx, setEggTx]         = useState<EggTransaction[]>([])
   const [sheds, setSheds]         = useState<Shed[]>([])
@@ -86,6 +87,33 @@ export default function DashboardPage() {
 
   const recentFeed = feedTx.slice(0, 5)
   const recentEggs = eggTx.slice(0, 5)
+
+  // ── Month-over-month trends ─────────────────────────────────────────────
+  const now           = new Date()
+  const thisMonthEnd  = now
+  const thisMonthBeg  = startOfMonth(now)
+  const lastMonthBeg  = startOfMonth(subMonths(now, 1))
+  const lastMonthEnd  = thisMonthBeg
+  const inThis = (d: string) => isAfter(parseISO(d), thisMonthBeg) && !isAfter(parseISO(d), thisMonthEnd)
+  const inLast = (d: string) => isAfter(parseISO(d), lastMonthBeg) && isBefore(parseISO(d), lastMonthEnd)
+  const pct = (curr: number, prev: number) => prev === 0 ? 0 : Math.round(((curr - prev) / prev) * 100)
+
+  const thisFeedIn  = feedTx.filter(t => t.type === 'import' && inThis(t.date)).reduce((a, t) => a + t.quantityKg, 0)
+  const lastFeedIn  = feedTx.filter(t => t.type === 'import' && inLast(t.date)).reduce((a, t) => a + t.quantityKg, 0)
+  const thisFeedOut = feedTx.filter(t => t.type === 'export' && inThis(t.date)).reduce((a, t) => a + t.quantityKg, 0)
+  const lastFeedOut = feedTx.filter(t => t.type === 'export' && inLast(t.date)).reduce((a, t) => a + t.quantityKg, 0)
+  const thisEggIn   = eggTx.filter(t => t.type === 'import' && inThis(t.date)).reduce((a, t) => a + t.quantityTrays, 0)
+  const lastEggIn   = eggTx.filter(t => t.type === 'import' && inLast(t.date)).reduce((a, t) => a + t.quantityTrays, 0)
+  const thisEggOut  = eggTx.filter(t => t.type === 'export' && inThis(t.date)).reduce((a, t) => a + t.quantityTrays, 0)
+  const lastEggOut  = eggTx.filter(t => t.type === 'export' && inLast(t.date)).reduce((a, t) => a + t.quantityTrays, 0)
+  const thisHarvRev = pondTx.filter(t => t.type === 'harvest' && inThis(t.date)).reduce((a, t) => a + (t.totalAmount ?? 0), 0)
+  const lastHarvRev = pondTx.filter(t => t.type === 'harvest' && inLast(t.date)).reduce((a, t) => a + (t.totalAmount ?? 0), 0)
+
+  const tFeedIn    = pct(thisFeedIn, lastFeedIn)
+  const tFeedOut   = pct(thisFeedOut, lastFeedOut)
+  const tEggIn     = pct(thisEggIn, lastEggIn)
+  const tEggOut    = pct(thisEggOut, lastEggOut)
+  const tHarvestRev = pct(thisHarvRev, lastHarvRev)
 
   return (
     <div className="space-y-8">
@@ -144,7 +172,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <StatsCard title={te.stats.totalPonds}    value={String(ponds.length)}              icon={<GiFishingBoat />} color="blue"   sub={`${ponds.filter(p => p.status === 'active').length} ${te.pond.active}`} />
               <StatsCard title={te.stats.liveStock}      value={`${totalPondStock.toFixed(1)} kg`} icon={<GiFishingBoat />} color="green"  sub={te.pond.estimatedWt} />
-              <StatsCard title={te.stats.harvestRev}     value={cur(pondHarvestRev)}               icon={<TbCurrencyRupee />} color="yellow" sub={te.pond.cumulative} />
+              <StatsCard title={te.stats.harvestRev}     value={cur(pondHarvestRev)}               icon={<TbCurrencyRupee />} color="yellow" sub={te.pond.cumulative}      trendPct={tHarvestRev} trendGood={true} />
               <StatsCard title={te.stats.pondPL}         value={cur(pondHarvestRev - pondInputCost)} icon={<TbCurrencyRupee />} color={pondHarvestRev >= pondInputCost ? 'green' : 'red'} sub={`${te.common.cost}: ${cur(pondInputCost)}`} />
             </div>
 
@@ -174,8 +202,8 @@ export default function DashboardPage() {
           <section>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.feedOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title={te.stats.feedImported}  value={`${fmt(feedImported)} kg`} icon={<FaWheatAwn />} color="green"  sub={te.stats.totalReceived} />
-              <StatsCard title={te.stats.feedExported}  value={`${fmt(feedExported)} kg`} icon={<FaWheatAwn />} color="yellow" sub={te.stats.totalDispatched} />
+              <StatsCard title={te.stats.feedImported}  value={`${fmt(feedImported)} kg`} icon={<FaWheatAwn />} color="green"  sub={te.stats.totalReceived}    trendPct={tFeedIn}  trendGood={true} />
+              <StatsCard title={te.stats.feedExported}  value={`${fmt(feedExported)} kg`} icon={<FaWheatAwn />} color="yellow" sub={te.stats.totalDispatched}  trendPct={tFeedOut} trendGood={true} />
               <StatsCard title={te.stats.feedStock}     value={`${fmt(feedStock)} kg`}    icon={<BiSolidPackage />} color="blue" sub={te.stats.currentInventory} />
               <StatsCard title={te.stats.feedPL}        value={cur(feedRevenue - feedCost)} icon={<TbCurrencyRupee />} color={feedRevenue >= feedCost ? 'green' : 'red'} sub={`${te.common.cost}: ${cur(feedCost)}`} />
             </div>
@@ -185,9 +213,9 @@ export default function DashboardPage() {
           <section>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.eggOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title={te.stats.eggImported}  value={`${fmt(eggImported)} ట్రేలు`}  icon={<MdOutlineEgg />} color="green"  sub={`${fmt(eggImported * 30)} గుడ్లు`} />
-              <StatsCard title={te.stats.eggExported}  value={`${fmt(eggExported)} ట్రేలు`}  icon={<MdOutlineEgg />} color="yellow" sub={`${fmt(eggExported * 30)} గుడ్లు`} />
-              <StatsCard title={te.stats.eggStock}      value={`${fmt(eggStock)} ట్రేలు`}      icon={<BiSolidPackage />} color="blue" sub={`${fmt(eggStock * 30)} గుడ్లు`} />
+              <StatsCard title={te.stats.eggImported}  value={`${fmt(eggImported)} ${te.eggs.trays}`}  icon={<MdOutlineEgg />} color="green"  sub={`${fmt(eggImported * 30)} ${te.eggs.eggs}`}  trendPct={tEggIn}  trendGood={true} />
+              <StatsCard title={te.stats.eggExported}  value={`${fmt(eggExported)} ${te.eggs.trays}`}  icon={<MdOutlineEgg />} color="yellow" sub={`${fmt(eggExported * 30)} ${te.eggs.eggs}`}  trendPct={tEggOut} trendGood={true} />
+              <StatsCard title={te.stats.eggStock}      value={`${fmt(eggStock)} ${te.eggs.trays}`}      icon={<BiSolidPackage />} color="blue" sub={`${fmt(eggStock * 30)} ${te.eggs.eggs}`} />
               <StatsCard title={te.stats.eggRevenue}    value={cur(eggRevenue)}               icon={<TbCurrencyRupee />} color="purple" sub={`${te.common.cost}: ${cur(eggCost)}`} />
             </div>
           </section>

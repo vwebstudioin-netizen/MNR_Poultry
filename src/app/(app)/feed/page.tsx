@@ -9,7 +9,7 @@ import type { FeedTransaction, FeedCategory } from '@/types'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { MdDelete } from 'react-icons/md'
 import { format } from 'date-fns'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 const CATEGORIES: FeedCategory[] = ['corn', 'soybean', 'wheat', 'premix', 'rice-bran', 'other']
 
@@ -28,6 +28,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function FeedPage() {
+  const { t: te } = useLang()
   const [transactions, setTransactions] = useState<FeedTransaction[]>([])
   const [loading, setLoading]           = useState(true)
   const [saving, setSaving]             = useState(false)

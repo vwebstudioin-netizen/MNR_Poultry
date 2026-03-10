@@ -15,7 +15,7 @@ import { FaFish } from 'react-icons/fa6'
 import { GiShrimp } from 'react-icons/gi'
 import { format } from 'date-fns'
 import { clsx } from 'clsx'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const FISH_SPECIES   = ['rohu', 'catla', 'tilapia', 'catfish', 'carp', 'milkfish', 'other']
@@ -39,11 +39,11 @@ const txColor: Record<PondTransactionType, string> = {
 }
 
 const txLabel: Record<PondTransactionType, string> = {
-  'seed-stock': te.pond.seedStock,
-  'feed-in':    te.pond.feedIn,
-  'harvest':    te.pond.harvest,
-  'mortality':  te.pond.mortality,
-  'chemical':   te.pond.chemical,
+  'seed-stock': '',
+  'feed-in':    '',
+  'harvest':    '',
+  'mortality':  '',
+  'chemical':   '',
 }
 
 // What each tx type does to stock
@@ -94,6 +94,14 @@ type TxFormData   = z.infer<typeof txSchema>
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function PondsPage() {
+  const { t: te } = useLang()
+  const txLabel: Record<PondTransactionType, string> = {
+    'seed-stock': te.pond.seedStock,
+    'feed-in':    te.pond.feedIn,
+    'harvest':    te.pond.harvest,
+    'mortality':  te.pond.mortality,
+    'chemical':   te.pond.chemical,
+  }
   const [ponds, setPonds]             = useState<Pond[]>([])
   const [allTx, setAllTx]             = useState<PondTransaction[]>([])
   const [loading, setLoading]         = useState(true)

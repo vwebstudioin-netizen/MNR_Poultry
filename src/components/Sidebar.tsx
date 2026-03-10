@@ -3,24 +3,25 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { GiChicken, GiBarn, GiFishingBoat } from 'react-icons/gi'
-import { MdDashboard, MdOutlineEgg, MdLogout } from 'react-icons/md'
+import { MdDashboard, MdOutlineEgg, MdLogout, MdLanguage } from 'react-icons/md'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { clsx } from 'clsx'
 import { useAuth } from '@/lib/auth-context'
-import te from '@/lib/te'
-
-const navItems = [
-  { href: '/dashboard', label: te.nav.dashboard, icon: MdDashboard    },
-  { href: '/sheds',     label: te.nav.sheds,     icon: GiBarn         },
-  { href: '/ponds',     label: te.nav.ponds,     icon: GiFishingBoat  },
-  { href: '/feed',      label: te.nav.feed,      icon: FaWheatAwn     },
-  { href: '/eggs',      label: te.nav.eggs,      icon: MdOutlineEgg   },
-]
+import { useLang } from '@/lib/lang-context'
 
 export default function Sidebar() {
   const pathname    = usePathname()
   const router      = useRouter()
   const { logout, user } = useAuth()
+  const { t, lang, toggleLang } = useLang()
+
+  const navItems = [
+    { href: '/dashboard', label: t.nav.dashboard, icon: MdDashboard    },
+    { href: '/sheds',     label: t.nav.sheds,     icon: GiBarn         },
+    { href: '/ponds',     label: t.nav.ponds,     icon: GiFishingBoat  },
+    { href: '/feed',      label: t.nav.feed,      icon: FaWheatAwn     },
+    { href: '/eggs',      label: t.nav.eggs,      icon: MdOutlineEgg   },
+  ]
 
   const handleLogout = async () => {
     await logout()
@@ -35,8 +36,8 @@ export default function Sidebar() {
           <GiChicken className="text-white text-xl" />
         </div>
         <div>
-          <p className="font-heading font-bold text-gray-900 text-sm leading-tight">{te.appName}</p>
-          <p className="text-xs text-gray-400">{te.appTagline}</p>
+          <p className="font-heading font-bold text-gray-900 text-sm leading-tight">{t.appName}</p>
+          <p className="text-xs text-gray-400">{t.appTagline}</p>
         </div>
       </div>
 
@@ -59,6 +60,23 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* Language Toggle */}
+      <div className="px-4 pb-2">
+        <button
+          onClick={toggleLang}
+          className="flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-semibold border border-gray-200 hover:bg-gray-50 transition-all"
+          title="Toggle language"
+        >
+          <span className="flex items-center gap-2 text-gray-500">
+            <MdLanguage className="text-base" />
+            {lang === 'te' ? 'తెలుగు' : 'English'}
+          </span>
+          <span className="bg-brand-100 text-brand-700 px-2 py-0.5 rounded-lg">
+            {lang === 'te' ? 'EN' : 'తె'}
+          </span>
+        </button>
+      </div>
+
       {/* User + Logout */}
       <div className="px-4 py-4 border-t border-gray-100 space-y-2">
         {user?.email && (
@@ -69,9 +87,9 @@ export default function Sidebar() {
           className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
         >
           <MdLogout className="text-lg" />
-          {te.auth.logout}
+          {t.auth.logout}
         </button>
-        <p className="text-xs text-gray-300 px-1">{te.appName} © 2026</p>
+        <p className="text-xs text-gray-300 px-1">{t.appName} © 2026</p>
       </div>
     </aside>
   )

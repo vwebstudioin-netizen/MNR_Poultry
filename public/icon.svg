@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#f59e0b"/>
+  <!-- Chicken body (simplified) -->
+  <ellipse cx="256" cy="300" rx="110" ry="100" fill="#ffffff"/>
+  <!-- Chicken head -->
+  <circle cx="256" cy="180" r="70" fill="#ffffff"/>
+  <!-- Beak -->
+  <polygon points="256,210 230,235 282,235" fill="#fb923c"/>
+  <!-- Comb -->
+  <ellipse cx="240" cy="130" rx="16" ry="24" fill="#ef4444"/>
+  <ellipse cx="256" cy="122" rx="16" ry="28" fill="#ef4444"/>
+  <ellipse cx="272" cy="130" rx="16" ry="24" fill="#ef4444"/>
+  <!-- Eye -->
+  <circle cx="240" cy="174" r="10" fill="#1e293b"/>
+  <circle cx="272" cy="174" r="10" fill="#1e293b"/>
+  <circle cx="243" cy="171" r="3" fill="#ffffff"/>
+  <circle cx="275" cy="171" r="3" fill="#ffffff"/>
+  <!-- Wing -->
+  <ellipse cx="180" cy="290" rx="50" ry="75" fill="#fcd34d" transform="rotate(-20 180 290)"/>
+  <ellipse cx="332" cy="290" rx="50" ry="75" fill="#fcd34d" transform="rotate(20 332 290)"/>
+  <!-- Legs -->
+  <rect x="226" y="390" width="20" height="60" rx="8" fill="#fb923c"/>
+  <rect x="266" y="390" width="20" height="60" rx="8" fill="#fb923c"/>
+  <!-- Feet -->
+  <rect x="208" y="444" width="40" height="12" rx="6" fill="#fb923c"/>
+  <rect x="248" y="444" width="40" height="12" rx="6" fill="#fb923c"/>
+  <!-- Wattle -->
+  <ellipse cx="256" cy="228" rx="14" ry="18" fill="#ef4444"/>
+</svg>

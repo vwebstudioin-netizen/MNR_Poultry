@@ -1,17 +1,34 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
+import { LangProvider } from '@/lib/lang-context'
+
+export const viewport: Viewport = {
+  themeColor:   '#f59e0b',
+  width:        'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export const metadata: Metadata = {
-  title: { default: 'MNR పౌల్ట్రీ — నిర్వహణ వ్యవస్థ', template: '%s | MNR పౌల్ట్రీ' },
-  description: 'MNR పౌల్ట్రీ కోసం దాణా & గుడ్లు దిగుమతి/ఎగుమతి ట్రాకింగ్ వ్యవస్థ',
+  title:       { default: 'MNR Poultry', template: '%s | MNR Poultry' },
+  description: 'MNR Poultry — Feed, Eggs, Sheds & Pond management system',
+  manifest:    '/manifest.json',
+  appleWebApp: { capable: true, title: 'MNR Poultry', statusBarStyle: 'default' },
+  formatDetection: { telephone: false },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="te">
+    <html lang="mul">
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <LangProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </LangProvider>
       </body>
     </html>
   )

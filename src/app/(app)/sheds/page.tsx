@@ -13,7 +13,7 @@ import { GiBarn } from 'react-icons/gi'
 import { MdDelete, MdEdit, MdClose, MdAdd } from 'react-icons/md'
 import { format } from 'date-fns'
 import { clsx } from 'clsx'
-import te from '@/lib/te'
+import { useLang } from '@/lib/lang-context'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const SHED_TYPES: ShedType[]     = ['broiler', 'layer', 'breeder', 'chick', 'other']
@@ -63,6 +63,7 @@ type MovementFormData = z.infer<typeof movementSchema>
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ShedsPage() {
+  const { t: te } = useLang()
   const [sheds, setSheds]         = useState<Shed[]>([])
   const [movements, setMovements] = useState<ChickenMovement[]>([])
   const [loading, setLoading]     = useState(true)
