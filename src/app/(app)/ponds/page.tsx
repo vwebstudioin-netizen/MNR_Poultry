@@ -15,6 +15,7 @@ import { FaFish } from 'react-icons/fa6'
 import { GiShrimp } from 'react-icons/gi'
 import { format } from 'date-fns'
 import { clsx } from 'clsx'
+import te from '@/lib/te'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const FISH_SPECIES   = ['rohu', 'catla', 'tilapia', 'catfish', 'carp', 'milkfish', 'other']
@@ -38,11 +39,11 @@ const txColor: Record<PondTransactionType, string> = {
 }
 
 const txLabel: Record<PondTransactionType, string> = {
-  'seed-stock': 'Seed Stocking',
-  'feed-in':    'Feed Input',
-  'harvest':    'Harvest (Sale)',
-  'mortality':  'Mortality',
-  'chemical':   'Chemical / Medicine',
+  'seed-stock': te.pond.seedStock,
+  'feed-in':    te.pond.feedIn,
+  'harvest':    te.pond.harvest,
+  'mortality':  te.pond.mortality,
+  'chemical':   te.pond.chemical,
 }
 
 // What each tx type does to stock
@@ -199,7 +200,7 @@ export default function PondsPage() {
 
   const handleDeletePond = async (id?: string) => {
     if (!id) return
-    if (!confirm('Delete this pond? Transaction history will remain.')) return
+    if (!confirm(te.pond.confirmDelete)) return
     await deletePond(id)
     await load()
   }
@@ -244,7 +245,7 @@ export default function PondsPage() {
 
   const handleDeleteTx = async (id?: string) => {
     if (!id) return
-    if (!confirm('Delete this transaction?')) return
+    if (!confirm(te.common.confirm_delete)) return
     await deletePondTransaction(id)
     await load()
   }
@@ -281,22 +282,22 @@ export default function PondsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <GiFishingBoat className="text-brand-500 text-3xl" /> Pond Management
+            <GiFishingBoat className="text-brand-500 text-3xl" /> {te.pond.title}
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">Fish &amp; prawn ponds — seed, feed, harvest &amp; more</p>
+          <p className="text-sm text-gray-400 mt-0.5">{te.pond.subtitle}</p>
         </div>
         <button className="btn-primary text-sm" onClick={() => { setEditingPond(null); setShowPondForm(true) }}>
-          <MdAdd className="inline mr-1 text-base" /> Add Pond
+          <MdAdd className="inline mr-1 text-base" /> {te.pond.addPond}
         </button>
       </div>
 
       {/* Overview stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Ponds',    value: totalPonds,    sub: `${activePonds} active`,          color: 'text-brand-600' },
-          { label: 'Live Stock',     value: wt(totalStockKg), sub: 'total estimated weight',       color: 'text-green-600' },
-          { label: 'Total Harvest',  value: cur(totalHarvest),  sub: 'cumulative revenue',         color: 'text-blue-600'  },
-          { label: 'Net P&L',        value: cur(totalHarvest - totalInputCost), sub: `Cost: ${cur(totalInputCost)}`, color: totalHarvest >= totalInputCost ? 'text-green-600' : 'text-red-500' },
+          { label: te.pond.totalPonds,   value: totalPonds,       sub: `${activePonds} ${te.pond.active}`,             color: 'text-brand-600' },
+          { label: te.pond.liveStock,    value: wt(totalStockKg), sub: te.pond.estimatedWt,                           color: 'text-green-600' },
+          { label: te.pond.totalHarvest, value: cur(totalHarvest), sub: te.pond.cumulative,                           color: 'text-blue-600'  },
+          { label: te.pond.pondPL,       value: cur(totalHarvest - totalInputCost), sub: `${te.common.cost}: ${cur(totalInputCost)}`, color: totalHarvest >= totalInputCost ? 'text-green-600' : 'text-red-500' },
         ].map(s => (
           <div key={s.label} className="card">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{s.label}</p>
@@ -319,7 +320,7 @@ export default function PondsPage() {
                 : 'border-transparent text-gray-400 hover:text-gray-600'
             )}
           >
-            {tab === 'ponds' ? `Ponds (${totalPonds})` : `Transactions (${allTx.length})`}
+            {tab === 'ponds' ? `${te.pond.ponds} (${totalPonds})` : `${te.pond.transactions} (${allTx.length})`}
           </button>
         ))}
       </div>
@@ -327,11 +328,11 @@ export default function PondsPage() {
       {/* ── Ponds Tab ──────────────────────────────────────────────────────── */}
       {activeTab === 'ponds' && (
         loading ? (
-          <div className="flex items-center justify-center h-48 text-gray-400">Loading ponds…</div>
+          <div className="flex items-center justify-center h-48 text-gray-400">{te.common.loading}</div>
         ) : ponds.length === 0 ? (
           <div className="card flex flex-col items-center justify-center h-48 text-gray-400 gap-3">
             <GiFishingBoat className="text-5xl text-gray-200" />
-            <p>No ponds added yet. Click <span className="font-semibold text-brand-500">+ Add Pond</span> to get started.</p>
+            <p>{te.pond.noPonds}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -371,26 +372,26 @@ export default function PondsPage() {
                   <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
                     <div className={clsx('h-2 rounded-full transition-all', barColor)} style={{ width: `${util}%` }} />
                   </div>
-                  <p className="text-xs text-gray-400 mb-3">{util}% utilised</p>
+                  <p className="text-xs text-gray-400 mb-3">{util}% {te.pond.utilised.replace('% ', '')}</p>
 
                   {/* P&L / FCR */}
                   <div className="grid grid-cols-3 gap-2 mb-4 text-center">
                     <div className="bg-green-50 rounded-xl py-2">
-                      <p className="text-xs text-gray-400">Revenue</p>
+                      <p className="text-xs text-gray-400">{te.common.revenue}</p>
                       <p className="text-sm font-bold text-green-700">{cur(harvestRev)}</p>
                     </div>
                     <div className="bg-red-50 rounded-xl py-2">
-                      <p className="text-xs text-gray-400">Cost</p>
+                      <p className="text-xs text-gray-400">{te.common.cost}</p>
                       <p className="text-sm font-bold text-red-600">{cur(pondCost)}</p>
                     </div>
                     <div className={clsx('rounded-xl py-2', harvestRev >= pondCost ? 'bg-blue-50' : 'bg-orange-50')}>
-                      <p className="text-xs text-gray-400">FCR</p>
+                      <p className="text-xs text-gray-400">{te.pond.fcr}</p>
                       <p className={clsx('text-sm font-bold', harvestRev >= pondCost ? 'text-blue-700' : 'text-orange-600')}>{fcrForPond(pond)}</p>
                     </div>
                   </div>
 
                   {pond.stockingDate && (
-                    <p className="text-xs text-gray-400 mb-3">Stocked: {pond.stockingDate}</p>
+                    <p className="text-xs text-gray-400 mb-3">{te.pond.stocked}: {pond.stockingDate}</p>
                   )}
 
                   {/* Actions */}
@@ -399,7 +400,7 @@ export default function PondsPage() {
                       onClick={() => { setTxPond(pond); resetTx({ type: 'seed-stock', date: format(new Date(), 'yyyy-MM-dd') }) }}
                       className="flex-1 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold py-2 rounded-lg transition-all"
                     >
-                      Log Transaction
+                      {te.pond.logTx}
                     </button>
                     <button onClick={() => openEdit(pond)} className="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-all">
                       <MdEdit className="text-base" />
@@ -425,7 +426,7 @@ export default function PondsPage() {
               onChange={e => setFilterPond(e.target.value)}
               className="input w-auto text-sm py-1.5"
             >
-              <option value="all">All Ponds</option>
+              <option value="all">{te.pond.allPonds}</option>
               {ponds.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <div className="flex gap-2 flex-wrap">
@@ -440,24 +441,24 @@ export default function PondsPage() {
                       : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
                   )}
                 >
-                  {f === 'all' ? 'All' : txLabel[f as PondTransactionType]}
+                  {f === 'all' ? te.common.all : txLabel[f as PondTransactionType]}
                 </button>
               ))}
             </div>
-            <span className="ml-auto text-sm text-gray-400 self-center">{filteredTx.length} records</span>
+            <span className="ml-auto text-sm text-gray-400 self-center">{filteredTx.length} {te.common.records}</span>
           </div>
 
           <div className="card p-0 overflow-hidden">
             {loading ? (
-              <div className="flex items-center justify-center h-40 text-gray-400">Loading…</div>
+              <div className="flex items-center justify-center h-40 text-gray-400">{te.common.loading}</div>
             ) : filteredTx.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-gray-400">No transactions found</div>
+              <div className="flex items-center justify-center h-40 text-gray-400">{te.pond.noTx}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {['Date', 'Pond', 'Type', 'Details', 'Qty/Count', 'Rate', 'Total', 'Party', 'Actions'].map(h => (
+                      {[te.pond.tableDate, te.pond.tablePond, te.pond.tableType, te.pond.tableDetails, te.pond.tableQty, te.pond.tableRate, te.pond.tableTotal, te.pond.tableParty, te.pond.tableActions].map(h => (
                         <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -493,7 +494,7 @@ export default function PondsPage() {
                         <td className="px-4 py-3 text-gray-500">{t.party ?? '—'}</td>
                         <td className="px-4 py-3">
                           <button onClick={() => handleDeleteTx(t.id)} className="btn-danger px-2 py-1 text-xs">
-                            <MdDelete className="inline mr-1" />Delete
+                            <MdDelete className="inline mr-1" />{te.common.delete}
                           </button>
                         </td>
                       </tr>
@@ -511,21 +512,21 @@ export default function PondsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="font-heading font-bold text-gray-900">{editingPond ? 'Edit Pond' : 'Add New Pond'}</h2>
+              <h2 className="font-heading font-bold text-gray-900">{editingPond ? te.pond.editPond : te.pond.addPondTitle}</h2>
               <button onClick={closePondForm} className="text-gray-400 hover:text-gray-600"><MdClose className="text-xl" /></button>
             </div>
             <form onSubmit={handlePond(onPondSubmit)} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 {/* Name */}
                 <div>
-                  <label className="label">Pond Name</label>
+                  <label className="label">{te.pond.pondName}</label>
                   <input type="text" placeholder="e.g. Pond 1" {...regPond('name')} className="input" />
                   {pondErrors.name && <p className="text-red-500 text-xs mt-1">{pondErrors.name.message}</p>}
                 </div>
 
                 {/* Type */}
                 <div>
-                  <label className="label">Pond Type</label>
+                  <label className="label">{te.pond.pondType}</label>
                   <div className="flex gap-3 mt-2">
                     {(['fish', 'prawn'] as PondType[]).map(t => (
                       <label key={t} className="flex items-center gap-2 cursor-pointer">
@@ -541,7 +542,7 @@ export default function PondsPage() {
 
                 {/* Species */}
                 <div>
-                  <label className="label">Species</label>
+                  <label className="label">{te.pond.species}</label>
                   <select {...regPond('species')} className="input">
                     {speciesList.map(s => <option key={s} value={s} className="capitalize">{s.replace('-', ' ')}</option>)}
                   </select>
@@ -550,34 +551,34 @@ export default function PondsPage() {
 
                 {/* Area */}
                 <div>
-                  <label className="label">Area (Acres)</label>
+                  <label className="label">{te.pond.areaAcres}</label>
                   <input type="number" step="0.01" placeholder="1.5" {...regPond('areaAcres')} className="input" />
                   {pondErrors.areaAcres && <p className="text-red-500 text-xs mt-1">{pondErrors.areaAcres.message}</p>}
                 </div>
 
                 {/* Depth */}
                 <div>
-                  <label className="label">Avg Depth (ft) – optional</label>
+                  <label className="label">{te.pond.depthFt}</label>
                   <input type="number" step="0.1" placeholder="4.5" {...regPond('depthFt')} className="input" />
                 </div>
 
                 {/* Capacity */}
                 <div>
-                  <label className="label">Capacity (kg)</label>
+                  <label className="label">{te.pond.capacityKg}</label>
                   <input type="number" placeholder="500" {...regPond('capacityKg')} className="input" />
                   {pondErrors.capacityKg && <p className="text-red-500 text-xs mt-1">{pondErrors.capacityKg.message}</p>}
                 </div>
 
                 {/* Current Stock */}
                 <div>
-                  <label className="label">Current Stock (kg)</label>
+                  <label className="label">{te.pond.currentStockKg}</label>
                   <input type="number" step="0.1" placeholder="0" {...regPond('currentStockKg')} className="input" />
-                  {capacityKg > 0 && <p className="text-xs text-gray-400 mt-1">{utilPct}% utilised</p>}
+                  {capacityKg > 0 && <p className="text-xs text-gray-400 mt-1">{utilPct}% {te.pond.utilised.replace('% ', '')}</p>}
                 </div>
 
                 {/* Status */}
                 <div>
-                  <label className="label">Status</label>
+                  <label className="label">{te.common.status}</label>
                   <select {...regPond('status')} className="input">
                     {POND_STATUSES.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
                   </select>
@@ -585,21 +586,21 @@ export default function PondsPage() {
 
                 {/* Stocking Date */}
                 <div>
-                  <label className="label">Stocking Date (optional)</label>
+                  <label className="label">{te.pond.stockingDate} ({te.common.optional})</label>
                   <input type="date" {...regPond('stockingDate')} className="input" />
                 </div>
 
                 {/* Notes */}
                 <div className="col-span-2">
-                  <label className="label">Notes (optional)</label>
-                  <textarea rows={2} {...regPond('notes')} className="input resize-none" placeholder="Any remarks" />
+                  <label className="label">{te.common.notes} ({te.common.optional})</label>
+                  <textarea rows={2} {...regPond('notes')} className="input resize-none" placeholder={te.common.remarks} />
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary text-sm" onClick={closePondForm}>Cancel</button>
+                <button type="button" className="btn-secondary text-sm" onClick={closePondForm}>{te.common.cancel}</button>
                 <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-60">
-                  {saving ? 'Saving…' : editingPond ? 'Update Pond' : 'Add Pond'}
+                  {saving ? te.common.saving : editingPond ? te.pond.updatePond : te.pond.addPond}
                 </button>
               </div>
             </form>
@@ -613,8 +614,8 @@ export default function PondsPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <h2 className="font-heading font-bold text-gray-900">Log Transaction</h2>
-                <p className="text-xs text-gray-400">{txPond.name} · Live stock: {wt(txPond.currentStockKg)}</p>
+                <h2 className="font-heading font-bold text-gray-900">{te.pond.logTx}</h2>
+                <p className="text-xs text-gray-400">{txPond.name} · {te.pond.liveStockNow}: {wt(txPond.currentStockKg)}</p>
               </div>
               <button onClick={() => setTxPond(null)} className="text-gray-400 hover:text-gray-600"><MdClose className="text-xl" /></button>
             </div>
@@ -622,7 +623,7 @@ export default function PondsPage() {
             <form onSubmit={handleTx(onTxSubmit)} className="p-6 space-y-4">
               {/* Transaction type selection */}
               <div>
-                <label className="label mb-2">Transaction Type</label>
+                <label className="label mb-2">{te.pond.txType}</label>
                 <div className="grid grid-cols-1 gap-2">
                   {TX_TYPES.map(t => (
                     <label key={t} className="flex items-start gap-3 cursor-pointer border border-gray-200 rounded-xl px-3 py-2.5 hover:bg-gray-50 transition-all has-[:checked]:border-brand-400 has-[:checked]:bg-brand-50">
@@ -630,11 +631,11 @@ export default function PondsPage() {
                       <div>
                         <span className={clsx('text-xs font-semibold px-2 py-0.5 rounded-full', txColor[t])}>{txLabel[t]}</span>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {t === 'seed-stock' && 'Buy fingerlings/seeds and stock into the pond'}
-                          {t === 'feed-in'    && 'Feed purchased and fed to the fish/prawns'}
-                          {t === 'harvest'    && 'Fish/prawns harvested and sold to buyer'}
-                          {t === 'mortality'  && 'Record deaths — reduces live stock estimate'}
-                          {t === 'chemical'   && 'Medicines, lime, probiotics, disinfectants'}
+                          {t === 'seed-stock' && te.pond.seedStockDesc}
+                          {t === 'feed-in'    && te.pond.feedInDesc}
+                          {t === 'harvest'    && te.pond.harvestDesc}
+                          {t === 'mortality'  && te.pond.mortalityDesc}
+                          {t === 'chemical'   && te.pond.chemicalDesc}
                         </p>
                       </div>
                     </label>
@@ -642,9 +643,8 @@ export default function PondsPage() {
                 </div>
               </div>
 
-              {/* Common: Date */}
               <div>
-                <label className="label">Date</label>
+                <label className="label">{te.common.date}</label>
                 <input type="date" {...regTx('date')} className="input" />
                 {txErrors.date && <p className="text-red-500 text-xs mt-1">{txErrors.date.message}</p>}
               </div>
@@ -653,25 +653,25 @@ export default function PondsPage() {
               {txType === 'seed-stock' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">No. of Seeds / Fingerlings</label>
+                    <label className="label">{te.pond.seedCount}</label>
                     <input type="number" placeholder="5000" {...regTx('seedCount')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Price per Piece (₹)</label>
+                    <label className="label">{te.pond.pricePerUnit} ({te.common.optional})</label>
                     <input type="number" step="0.01" placeholder="0.50" {...regTx('pricePerUnit')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Avg Weight per Seed (g) – optional</label>
+                    <label className="label">{te.pond.avgWeight}</label>
                     <input type="number" step="0.1" placeholder="2.5" {...regTx('avgWeightGrams')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Stocked Weight (kg) – optional</label>
+                    <label className="label">{te.pond.stockedWt}</label>
                     <input type="number" step="0.01" placeholder="12.5" {...regTx('quantityKg')} className="input" />
-                    <p className="text-xs text-gray-400 mt-1">If blank, computed from count × avg weight</p>
+                    <p className="text-xs text-gray-400 mt-1">{te.pond.computedFromCount}</p>
                   </div>
                   <div className="col-span-2">
-                    <label className="label">Supplier</label>
-                    <input type="text" placeholder="Supplier name" {...regTx('party')} className="input" />
+                    <label className="label">{te.common.supplier}</label>
+                    <input type="text" placeholder={te.pond.supplierName} {...regTx('party')} className="input" />
                   </div>
                 </div>
               )}
@@ -680,20 +680,20 @@ export default function PondsPage() {
               {txType === 'feed-in' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Feed Type</label>
-                    <input type="text" placeholder="e.g. Pellets, Organic" {...regTx('feedType')} className="input" />
+                    <label className="label">{te.pond.feedType}</label>
+                    <input type="text" placeholder={te.pond.pellets} {...regTx('feedType')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Quantity (kg)</label>
+                    <label className="label">{te.pond.quantity} (kg)</label>
                     <input type="number" step="0.1" placeholder="200" {...regTx('quantityKg')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Price per kg (₹)</label>
+                    <label className="label">{te.pond.pricePerKg}</label>
                     <input type="number" step="0.01" placeholder="0" {...regTx('pricePerUnit')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Supplier</label>
-                    <input type="text" placeholder="Supplier name" {...regTx('party')} className="input" />
+                    <label className="label">{te.common.supplier}</label>
+                    <input type="text" placeholder={te.pond.supplierName} {...regTx('party')} className="input" />
                   </div>
                 </div>
               )}
@@ -702,16 +702,16 @@ export default function PondsPage() {
               {txType === 'harvest' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Harvested Weight (kg)</label>
+                  <label className="label">{te.pond.harvestedWt}</label>
                     <input type="number" step="0.1" placeholder="150" {...regTx('quantityKg')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Price per kg (₹)</label>
+                    <label className="label">{te.pond.pricePerKg}</label>
                     <input type="number" step="0.01" placeholder="120" {...regTx('pricePerUnit')} className="input" />
                   </div>
                   <div className="col-span-2">
-                    <label className="label">Buyer</label>
-                    <input type="text" placeholder="Buyer / market name" {...regTx('party')} className="input" />
+                    <label className="label">{te.common.buyer}</label>
+                    <input type="text" placeholder={te.pond.buyerMarket} {...regTx('party')} className="input" />
                   </div>
                 </div>
               )}
@@ -719,7 +719,7 @@ export default function PondsPage() {
               {/* ── Mortality fields ── */}
               {txType === 'mortality' && (
                 <div>
-                  <label className="label">Estimated Weight Lost (kg)</label>
+                  <label className="label">{te.pond.wtLost}</label>
                   <input type="number" step="0.1" placeholder="5" {...regTx('quantityKg')} className="input" />
                 </div>
               )}
@@ -728,24 +728,24 @@ export default function PondsPage() {
               {txType === 'chemical' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Item Name</label>
+                    <label className="label">{te.pond.itemName}</label>
                     <input type="text" placeholder="e.g. Lime, Probiotic XL" {...regTx('itemName')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Unit</label>
+                    <label className="label">{te.pond.unit}</label>
                     <input type="text" placeholder="kg / litre / packet" {...regTx('unit')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Quantity</label>
+                    <label className="label">{te.pond.quantity}</label>
                     <input type="number" step="0.1" placeholder="10" {...regTx('quantity')} className="input" />
                   </div>
                   <div>
-                    <label className="label">Price per Unit (₹)</label>
+                  <label className="label">{te.pond.pricePerUnit}</label>
                     <input type="number" step="0.01" placeholder="50" {...regTx('pricePerUnit')} className="input" />
                   </div>
                   <div className="col-span-2">
-                    <label className="label">Supplier</label>
-                    <input type="text" placeholder="Supplier name" {...regTx('party')} className="input" />
+                    <label className="label">{te.common.supplier}</label>
+                    <input type="text" placeholder={te.pond.supplierName} {...regTx('party')} className="input" />
                   </div>
                 </div>
               )}
@@ -754,7 +754,7 @@ export default function PondsPage() {
               {derivedTotal > 0 && (
                 <div className="flex items-center justify-between bg-brand-50 border border-brand-200 rounded-xl px-4 py-3">
                   <span className="text-sm font-medium text-brand-700">
-                    {txType === 'harvest' ? 'Sale Amount' : 'Total Cost'}
+                    {txType === 'harvest' ? te.pond.saleAmount : te.pond.totalCost}
                   </span>
                   <span className="text-lg font-bold font-heading text-brand-700">{cur(derivedTotal)}</span>
                 </div>
@@ -763,7 +763,7 @@ export default function PondsPage() {
               {/* Common: Invoice & Notes */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Invoice No. (optional)</label>
+                  <label className="label">{te.common.invoiceNo} ({te.common.optional})</label>
                   <input type="text" placeholder="INV-001" {...regTx('invoiceNo')} className="input" />
                 </div>
                 <div>
@@ -773,9 +773,9 @@ export default function PondsPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary text-sm" onClick={() => setTxPond(null)}>Cancel</button>
+                <button type="button" className="btn-secondary text-sm" onClick={() => setTxPond(null)}>{te.common.cancel}</button>
                 <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-60">
-                  {saving ? 'Saving…' : 'Save Transaction'}
+                  {saving ? te.common.saving : te.common.logTransaction}
                 </button>
               </div>
             </form>

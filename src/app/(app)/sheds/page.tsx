@@ -13,6 +13,7 @@ import { GiBarn } from 'react-icons/gi'
 import { MdDelete, MdEdit, MdClose, MdAdd } from 'react-icons/md'
 import { format } from 'date-fns'
 import { clsx } from 'clsx'
+import te from '@/lib/te'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const SHED_TYPES: ShedType[]     = ['broiler', 'layer', 'breeder', 'chick', 'other']
@@ -145,7 +146,7 @@ export default function ShedsPage() {
 
   const handleDeleteShed = async (id?: string) => {
     if (!id) return
-    if (!confirm('Delete this shed? This will not delete its movement history.')) return
+    if (!confirm(te.shed.confirmDelete)) return
     await deleteShed(id)
     await load()
   }
@@ -201,22 +202,22 @@ export default function ShedsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <GiBarn className="text-brand-500 text-3xl" /> Shed Management
+            <GiBarn className="text-brand-500 text-3xl" /> {te.shed.title}
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage sheds, chicken counts &amp; movements</p>
+          <p className="text-sm text-gray-400 mt-0.5">{te.shed.subtitle}</p>
         </div>
         <button className="btn-primary text-sm" onClick={() => { setEditingShed(null); setShowShedForm(true) }}>
-          <MdAdd className="inline mr-1 text-base" /> Add Shed
+          <MdAdd className="inline mr-1 text-base" /> {te.shed.addShed}
         </button>
       </div>
 
       {/* Overview stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Sheds',    value: totalSheds,    sub: `${activeSheds} active`,           color: 'text-brand-600' },
-          { label: 'Total Chickens', value: fmt(totalChickens), sub: `of ${fmt(totalCapacity)} capacity`, color: 'text-gray-800' },
-          { label: 'Utilisation',    value: `${overallUtil}%`,  sub: 'overall fill rate',          color: overallUtil > 80 ? 'text-red-500' : overallUtil > 50 ? 'text-brand-500' : 'text-green-600' },
-          { label: 'Empty Sheds',    value: sheds.filter(s => s.status === 'empty').length, sub: 'ready for new batch', color: 'text-blue-600' },
+          { label: te.shed.totalSheds,    value: totalSheds,         sub: `${activeSheds} ${te.shed.active}`,                  color: 'text-brand-600' },
+          { label: te.shed.totalChickens, value: fmt(totalChickens), sub: `of ${fmt(totalCapacity)} ${te.shed.capacity}`,      color: 'text-gray-800' },
+          { label: te.shed.utilisation,   value: `${overallUtil}%`,  sub: te.stats.fillRate,                                   color: overallUtil > 80 ? 'text-red-500' : overallUtil > 50 ? 'text-brand-500' : 'text-green-600' },
+          { label: te.shed.emptySheds,    value: sheds.filter(s => s.status === 'empty').length, sub: te.shed.available,     color: 'text-blue-600' },
         ].map(s => (
           <div key={s.label} className="card">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{s.label}</p>
@@ -239,7 +240,7 @@ export default function ShedsPage() {
                 : 'border-transparent text-gray-400 hover:text-gray-600'
             )}
           >
-            {tab === 'sheds' ? `Sheds (${totalSheds})` : `Movement Log (${movements.length})`}
+            {tab === 'sheds' ? `${te.shed.sheds} (${totalSheds})` : `${te.shed.movementLog} (${movements.length})`}
           </button>
         ))}
       </div>
@@ -247,11 +248,11 @@ export default function ShedsPage() {
       {/* ── Sheds Tab ─────────────────────────────────────────────────────── */}
       {activeTab === 'sheds' && (
         loading ? (
-          <div className="flex items-center justify-center h-48 text-gray-400">Loading sheds…</div>
+          <div className="flex items-center justify-center h-48 text-gray-400">{te.common.loading}</div>
         ) : sheds.length === 0 ? (
           <div className="card flex flex-col items-center justify-center h-48 text-gray-400 gap-3">
             <GiBarn className="text-5xl text-gray-200" />
-            <p>No sheds added yet. Click <span className="font-semibold text-brand-500">+ Add Shed</span> to get started.</p>
+            <p>{te.shed.noSheds}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -277,7 +278,7 @@ export default function ShedsPage() {
                   {/* Chicken count */}
                   <div className="flex items-end gap-2 mb-2">
                     <span className="text-3xl font-bold font-heading text-gray-800">{fmt(shed.currentCount)}</span>
-                    <span className="text-sm text-gray-400 mb-1">/ {fmt(shed.capacity)} birds</span>
+                    <span className="text-sm text-gray-400 mb-1">/ {fmt(shed.capacity)} {te.shed.birdsNow.split(' ')[0]}</span>
                   </div>
 
                   {/* Utilisation bar */}
@@ -287,11 +288,11 @@ export default function ShedsPage() {
                       style={{ width: `${util}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mb-4">{util}% utilised</p>
+                  <p className="text-xs text-gray-400 mb-4">{util}% {te.shed.utilised.replace('% ', '')}</p>
 
                   {/* Placement date */}
                   {shed.placement && (
-                    <p className="text-xs text-gray-400 mb-3">Placed: {shed.placement}</p>
+                    <p className="text-xs text-gray-400 mb-3">{te.shed.placementDate}: {shed.placement}</p>
                   )}
                   {shed.notes && (
                     <p className="text-xs text-gray-500 italic mb-3 line-clamp-2">{shed.notes}</p>
@@ -303,7 +304,7 @@ export default function ShedsPage() {
                       onClick={() => { setMovingShed(shed); resetMove({ type: 'placement', date: format(new Date(), 'yyyy-MM-dd') }) }}
                       className="flex-1 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold py-2 rounded-lg transition-all"
                     >
-                      Log Movement
+                      {te.shed.logMovement}
                     </button>
                     <button
                       onClick={() => openEdit(shed)}
@@ -344,20 +345,20 @@ export default function ShedsPage() {
                 {f}
               </button>
             ))}
-            <span className="ml-auto text-sm text-gray-400 self-center">{filteredMovements.length} records</span>
+                <span className="ml-auto text-sm text-gray-400 self-center">{filteredMovements.length} {te.common.records}</span>
           </div>
 
           <div className="card p-0 overflow-hidden">
             {loading ? (
-              <div className="flex items-center justify-center h-40 text-gray-400">Loading…</div>
+              <div className="flex items-center justify-center h-40 text-gray-400">{te.common.loading}</div>
             ) : filteredMovements.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-gray-400">No movements logged yet</div>
+              <div className="flex items-center justify-center h-40 text-gray-400">{te.shed.noSheds}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {['Date', 'Shed', 'Type', 'Count', 'Notes'].map(h => (
+                      {[te.common.date, te.shed.sheds, te.common.type, te.shed.birdCount, te.common.notes].map(h => (
                         <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                       ))}
                     </tr>
@@ -389,7 +390,7 @@ export default function ShedsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="font-heading font-bold text-gray-900">{editingShed ? 'Edit Shed' : 'Add New Shed'}</h2>
+              <h2 className="font-heading font-bold text-gray-900">{editingShed ? te.shed.editShed : te.shed.addShedTitle}</h2>
               <button onClick={closeShedForm} className="text-gray-400 hover:text-gray-600">
                 <MdClose className="text-xl" />
               </button>
@@ -398,53 +399,53 @@ export default function ShedsPage() {
             <form onSubmit={handleShed(onShedSubmit)} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="label">Shed Name</label>
-                  <input type="text" placeholder="e.g. Shed A" {...regShed('name')} className="input" />
+                  <label className="label">{te.shed.shedName}</label>
+                  <input type="text" placeholder={te.shed.shedPlaceholder} {...regShed('name')} className="input" />
                   {shedErrors.name && <p className="text-red-500 text-xs mt-1">{shedErrors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="label">Shed Type</label>
+                  <label className="label">{te.shed.shedType}</label>
                   <select {...regShed('shedType')} className="input">
                     {SHED_TYPES.map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label">Capacity (birds)</label>
+                  <label className="label">{te.shed.capacity}</label>
                   <input type="number" placeholder="5000" {...regShed('capacity')} className="input" />
                   {shedErrors.capacity && <p className="text-red-500 text-xs mt-1">{shedErrors.capacity.message}</p>}
                 </div>
                 <div>
-                  <label className="label">Current Count (birds)</label>
+                  <label className="label">{te.shed.currentCount}</label>
                   <input type="number" placeholder="0" {...regShed('currentCount')} className="input" />
                   {shedErrors.currentCount && <p className="text-red-500 text-xs mt-1">{shedErrors.currentCount.message}</p>}
                   {capacity > 0 && (
-                    <p className="text-xs text-gray-400 mt-1">{utilisation}% utilised</p>
+                    <p className="text-xs text-gray-400 mt-1">{utilisation}% {te.shed.utilised.replace('% ', '')}</p>
                   )}
                 </div>
                 <div>
-                  <label className="label">Status</label>
+                  <label className="label">{te.common.status}</label>
                   <select {...regShed('status')} className="input">
                     {SHED_STATUSES.map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label">Breed (optional)</label>
-                  <input type="text" placeholder="e.g. Ross 308" {...regShed('breed')} className="input" />
+                  <label className="label">{te.shed.breed} ({te.common.optional})</label>
+                  <input type="text" placeholder={te.shed.breedPlaceholder} {...regShed('breed')} className="input" />
                 </div>
                 <div>
-                  <label className="label">Placement Date (optional)</label>
+                  <label className="label">{te.shed.placementDate} ({te.common.optional})</label>
                   <input type="date" {...regShed('placement')} className="input" />
                 </div>
                 <div className="col-span-2">
-                  <label className="label">Notes (optional)</label>
-                  <textarea rows={2} placeholder="Any remarks about this shed" {...regShed('notes')} className="input resize-none" />
+                  <label className="label">{te.common.notes} ({te.common.optional})</label>
+                  <textarea rows={2} placeholder={te.shed.notesPlaceholder} {...regShed('notes')} className="input resize-none" />
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary text-sm" onClick={closeShedForm}>Cancel</button>
+                <button type="button" className="btn-secondary text-sm" onClick={closeShedForm}>{te.common.cancel}</button>
                 <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-60">
-                  {saving ? 'Saving…' : editingShed ? 'Update Shed' : 'Add Shed'}
+                  {saving ? te.common.saving : editingShed ? te.shed.updateShed : te.shed.addShed}
                 </button>
               </div>
             </form>
@@ -458,8 +459,8 @@ export default function ShedsPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
-                <h2 className="font-heading font-bold text-gray-900">Log Movement</h2>
-                <p className="text-xs text-gray-400">{movingShed.name} — {fmt(movingShed.currentCount)} birds currently</p>
+                <h2 className="font-heading font-bold text-gray-900">{te.shed.logMovement}</h2>
+                <p className="text-xs text-gray-400">{movingShed.name} — {fmt(movingShed.currentCount)} {te.shed.birdsNow}</p>
               </div>
               <button onClick={() => setMovingShed(null)} className="text-gray-400 hover:text-gray-600">
                 <MdClose className="text-xl" />
@@ -469,7 +470,7 @@ export default function ShedsPage() {
             <form onSubmit={handleMove(onMovementSubmit)} className="p-6 space-y-4">
               {/* Movement type radios */}
               <div>
-                <label className="label mb-2">Movement Type</label>
+                <label className="label mb-2">{te.shed.movementType}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {MOVE_TYPES.map(t => (
                     <label key={t} className="flex items-center gap-2 cursor-pointer border border-gray-200 rounded-xl px-3 py-2.5 hover:bg-gray-50 transition-all has-[:checked]:border-brand-400 has-[:checked]:bg-brand-50">
@@ -477,10 +478,10 @@ export default function ShedsPage() {
                       <div>
                         <span className="text-sm font-medium capitalize">{t}</span>
                         <p className="text-xs text-gray-400">
-                          {t === 'placement' && 'Add birds to shed'}
-                          {t === 'harvest'   && 'Birds sold/removed'}
-                          {t === 'mortality' && 'Birds died'}
-                          {t === 'transfer'  && 'Moved to another shed'}
+                          {t === 'placement' && te.shed.placementDesc}
+                          {t === 'harvest'   && te.shed.harvestDesc}
+                          {t === 'mortality' && te.shed.mortalityDesc}
+                          {t === 'transfer'  && te.shed.transferDesc}
                         </p>
                       </div>
                     </label>
@@ -491,26 +492,26 @@ export default function ShedsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Date</label>
+                  <label className="label">{te.common.date}</label>
                   <input type="date" {...regMove('date')} className="input" />
                   {moveErrors.date && <p className="text-red-500 text-xs mt-1">{moveErrors.date.message}</p>}
                 </div>
                 <div>
-                  <label className="label">No. of Birds</label>
+                  <label className="label">{te.shed.birdCount}</label>
                   <input type="number" min="1" placeholder="0" {...regMove('count')} className="input" />
                   {moveErrors.count && <p className="text-red-500 text-xs mt-1">{moveErrors.count.message}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="label">Notes (optional)</label>
+                <label className="label">{te.common.notes} ({te.common.optional})</label>
                 <input type="text" placeholder="e.g. Batch #5, local market" {...regMove('notes')} className="input" />
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" className="btn-secondary text-sm" onClick={() => setMovingShed(null)}>Cancel</button>
+                <button type="button" className="btn-secondary text-sm" onClick={() => setMovingShed(null)}>{te.common.cancel}</button>
                 <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-60">
-                  {saving ? 'Saving…' : 'Log Movement'}
+                  {saving ? te.common.saving : te.shed.logMovement}
                 </button>
               </div>
             </form>

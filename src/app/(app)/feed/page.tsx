@@ -9,6 +9,7 @@ import type { FeedTransaction, FeedCategory } from '@/types'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { MdDelete } from 'react-icons/md'
 import { format } from 'date-fns'
+import te from '@/lib/te'
 
 const CATEGORIES: FeedCategory[] = ['corn', 'soybean', 'wheat', 'premix', 'rice-bran', 'other']
 
@@ -92,22 +93,22 @@ export default function FeedPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FaWheatAwn className="text-brand-500" /> Feed Management
+            <FaWheatAwn className="text-brand-500" /> {te.feed.title}
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">Track all feed import &amp; export transactions</p>
+          <p className="text-sm text-gray-400 mt-0.5">{te.feed.subtitle}</p>
         </div>
         <button className="btn-primary text-sm" onClick={() => setShowForm(v => !v)}>
-          {showForm ? 'Cancel' : '+ Add Transaction'}
+          {showForm ? te.common.cancel : te.feed.addTx}
         </button>
       </div>
 
       {/* Mini stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Imported', value: `${fmt(imported)} kg`, color: 'text-green-600' },
-          { label: 'Total Exported', value: `${fmt(exported)} kg`, color: 'text-brand-600' },
-          { label: 'Current Stock',  value: `${fmt(stock)} kg`,    color: 'text-blue-600' },
-          { label: 'Net P&L',        value: cur(revenue - cost),   color: revenue >= cost ? 'text-green-600' : 'text-red-500' },
+          { label: te.feed.totalImported, value: `${fmt(imported)} kg`, color: 'text-green-600' },
+          { label: te.feed.totalExported, value: `${fmt(exported)} kg`, color: 'text-brand-600' },
+          { label: te.feed.currentStock,  value: `${fmt(stock)} kg`,    color: 'text-blue-600' },
+          { label: te.common.netPL,       value: cur(revenue - cost),   color: revenue >= cost ? 'text-green-600' : 'text-red-500' },
         ].map(s => (
           <div key={s.label} className="card">
             <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{s.label}</p>
@@ -119,7 +120,7 @@ export default function FeedPage() {
       {/* Add Form */}
       {showForm && (
         <form onSubmit={handleSubmit(onSubmit)} className="card space-y-4">
-          <h3 className="font-heading font-semibold text-gray-800 border-b border-gray-100 pb-3">New Feed Transaction</h3>
+          <h3 className="font-heading font-semibold text-gray-800 border-b border-gray-100 pb-3">{te.feed.newTx}</h3>
 
           {/* Type */}
           <div className="flex gap-4">
@@ -133,53 +134,53 @@ export default function FeedPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <label className="label">Date</label>
+              <label className="label">{te.common.date}</label>
               <input type="date" {...register('date')} className="input" />
               {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
             </div>
             <div>
-              <label className="label">Category</label>
+              <label className="label">{te.common.category}</label>
               <select {...register('category')} className="input">
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="label">Supplier / Buyer</label>
+              <label className="label">{te.common.party}</label>
               <input type="text" placeholder="Name" {...register('party')} className="input" />
               {errors.party && <p className="text-red-500 text-xs mt-1">{errors.party.message}</p>}
             </div>
             <div>
-              <label className="label">Quantity (kg)</label>
+              <label className="label">{te.feed.quantityKg}</label>
               <input type="number" step="0.01" placeholder="0" {...register('quantityKg')} className="input" />
               {errors.quantityKg && <p className="text-red-500 text-xs mt-1">{errors.quantityKg.message}</p>}
             </div>
             <div>
-              <label className="label">Price per kg (₹)</label>
+              <label className="label">{te.feed.pricePerKg}</label>
               <input type="number" step="0.01" placeholder="0.00" {...register('pricePerKg')} className="input" />
               {errors.pricePerKg && <p className="text-red-500 text-xs mt-1">{errors.pricePerKg.message}</p>}
             </div>
             <div>
-              <label className="label">Total Amount</label>
+              <label className="label">{te.common.totalAmount}</label>
               <div className="input bg-gray-50 font-semibold text-gray-700">{cur(total)}</div>
             </div>
             <div>
-              <label className="label">Vehicle No. (optional)</label>
+              <label className="label">{te.common.vehicleNo} ({te.common.optional})</label>
               <input type="text" placeholder="ABC-1234" {...register('vehicleNo')} className="input" />
             </div>
             <div>
-              <label className="label">Invoice No. (optional)</label>
+              <label className="label">{te.common.invoiceNo} ({te.common.optional})</label>
               <input type="text" placeholder="INV-001" {...register('invoiceNo')} className="input" />
             </div>
             <div>
-              <label className="label">Notes (optional)</label>
+              <label className="label">{te.common.notes} ({te.common.optional})</label>
               <input type="text" placeholder="Any remarks" {...register('notes')} className="input" />
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" className="btn-secondary text-sm" onClick={() => setShowForm(false)}>Cancel</button>
+            <button type="button" className="btn-secondary text-sm" onClick={() => setShowForm(false)}>{te.common.cancel}</button>
             <button type="submit" disabled={saving} className="btn-primary text-sm disabled:opacity-60">
-              {saving ? 'Saving…' : 'Save Transaction'}
+              {saving ? te.common.saving : te.common.save}
             </button>
           </div>
         </form>
@@ -198,21 +199,21 @@ export default function FeedPage() {
             {f}
           </button>
         ))}
-        <span className="ml-auto text-sm text-gray-400 self-center">{filtered.length} records</span>
+        <span className="ml-auto text-sm text-gray-400 self-center">{filtered.length} {te.common.records}</span>
       </div>
 
       {/* Table */}
       <div className="card p-0 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-40 text-gray-400">Loading…</div>
+          <div className="flex items-center justify-center h-40 text-gray-400">{te.common.loading}</div>
         ) : filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-gray-400">No transactions found</div>
+          <div className="flex items-center justify-center h-40 text-gray-400">{te.feed.noTx}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Type', 'Date', 'Category', 'Party', 'Qty (kg)', '₹/kg', 'Total', 'Invoice', 'Actions'].map(h => (
+                  {[te.feed.tableType, te.feed.tableDate, te.feed.tableCategory, te.feed.tableParty, te.feed.tableQty, te.feed.tableRate, te.feed.tableTotal, te.feed.tableInvoice, te.feed.tableActions].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -232,7 +233,7 @@ export default function FeedPage() {
                     <td className="px-4 py-3 text-gray-500">{t.invoiceNo ?? '—'}</td>
                     <td className="px-4 py-3">
                       <button onClick={() => handleDelete(t.id)} className="btn-danger px-2 py-1 text-xs">
-                        <MdDelete className="inline mr-1" /> Delete
+                        <MdDelete className="inline mr-1" /> {te.common.delete}
                       </button>
                     </td>
                   </tr>

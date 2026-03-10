@@ -1,0 +1,53 @@
+rules_version = '2';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// MNR Poultry — Firestore Security Rules
+// Only authenticated users (logged-in) can read or write any data.
+// All collections: feed_transactions, egg_transactions, sheds,
+//                  chicken_movements, ponds, pond_transactions
+// ──────────────────────────────────────────────────────────────────────────────
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper function ──────────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ── Feed transactions ────────────────────────────────────────────────────
+    match /feed_transactions/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Egg transactions ─────────────────────────────────────────────────────
+    match /egg_transactions/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Sheds ────────────────────────────────────────────────────────────────
+    match /sheds/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Chicken movements ────────────────────────────────────────────────────
+    match /chicken_movements/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Ponds ────────────────────────────────────────────────────────────────
+    match /ponds/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Pond transactions ────────────────────────────────────────────────────
+    match /pond_transactions/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Deny everything else ─────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

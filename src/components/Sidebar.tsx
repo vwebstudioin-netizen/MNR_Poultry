@@ -1,22 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { GiChicken, GiBarn, GiFishingBoat } from 'react-icons/gi'
-import { MdDashboard, MdOutlineEgg } from 'react-icons/md'
+import { MdDashboard, MdOutlineEgg, MdLogout } from 'react-icons/md'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { clsx } from 'clsx'
+import { useAuth } from '@/lib/auth-context'
+import te from '@/lib/te'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: MdDashboard    },
-  { href: '/sheds',     label: 'Sheds',     icon: GiBarn         },
-  { href: '/ponds',     label: 'Ponds',     icon: GiFishingBoat  },
-  { href: '/feed',      label: 'Feed',      icon: FaWheatAwn     },
-  { href: '/eggs',      label: 'Eggs',      icon: MdOutlineEgg   },
+  { href: '/dashboard', label: te.nav.dashboard, icon: MdDashboard    },
+  { href: '/sheds',     label: te.nav.sheds,     icon: GiBarn         },
+  { href: '/ponds',     label: te.nav.ponds,     icon: GiFishingBoat  },
+  { href: '/feed',      label: te.nav.feed,      icon: FaWheatAwn     },
+  { href: '/eggs',      label: te.nav.eggs,      icon: MdOutlineEgg   },
 ]
 
 export default function Sidebar() {
-  const pathname = usePathname()
+  const pathname    = usePathname()
+  const router      = useRouter()
+  const { logout, user } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    router.replace('/login')
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-gray-100 flex flex-col z-40 shadow-sm">
@@ -26,8 +35,8 @@ export default function Sidebar() {
           <GiChicken className="text-white text-xl" />
         </div>
         <div>
-          <p className="font-heading font-bold text-gray-900 text-sm leading-tight">MNR Poultry</p>
-          <p className="text-xs text-gray-400">Management System</p>
+          <p className="font-heading font-bold text-gray-900 text-sm leading-tight">{te.appName}</p>
+          <p className="text-xs text-gray-400">{te.appTagline}</p>
         </div>
       </div>
 
@@ -50,9 +59,19 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-100">
-        <p className="text-xs text-gray-400">MNR Poultry © 2026</p>
+      {/* User + Logout */}
+      <div className="px-4 py-4 border-t border-gray-100 space-y-2">
+        {user?.email && (
+          <p className="text-xs text-gray-400 truncate px-1">{user.email}</p>
+        )}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+        >
+          <MdLogout className="text-lg" />
+          {te.auth.logout}
+        </button>
+        <p className="text-xs text-gray-300 px-1">{te.appName} © 2026</p>
       </div>
     </aside>
   )

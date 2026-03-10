@@ -13,6 +13,7 @@ import { GiBarn, GiFishingBoat } from 'react-icons/gi'
 import { format, parseISO, startOfMonth } from 'date-fns'
 import Link from 'next/link'
 import { clsx } from 'clsx'
+import te from '@/lib/te'
 
 function buildChartData(
   transactions: Array<{ date: string; type: string; quantityKg?: number; quantityTrays?: number }>,
@@ -91,28 +92,28 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Overview of all operations — sheds, ponds, feed &amp; eggs</p>
+          <h1 className="font-heading text-2xl font-bold text-gray-900">{te.dashboard.title}</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{te.dashboard.subtitle}</p>
         </div>
         <div className="flex gap-3">
-          <Link href="/ponds" className="btn-secondary text-sm">+ Pond Entry</Link>
-          <Link href="/feed" className="btn-secondary text-sm">+ Feed Entry</Link>
-          <Link href="/eggs" className="btn-primary text-sm">+ Egg Entry</Link>
+          <Link href="/ponds" className="btn-secondary text-sm">{te.dashboard.addPondEntry}</Link>
+          <Link href="/feed" className="btn-secondary text-sm">{te.dashboard.addFeedEntry}</Link>
+          <Link href="/eggs" className="btn-primary text-sm">{te.dashboard.addEggEntry}</Link>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-gray-400">Loading data…</div>
+        <div className="flex items-center justify-center h-64 text-gray-400">{te.dashboard.loadingData}</div>
       ) : (
         <>
           {/* Stats Row 0 — Sheds */}
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Shed Overview</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.shedOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title="Total Sheds"    value={String(sheds.length)}        icon={<GiBarn />}        color="yellow"  sub={`${sheds.filter(s => s.status === 'active').length} active`} />
-              <StatsCard title="Total Chickens" value={fmt(totalChickens)}           icon={<GiBarn />}        color="green"   sub={`of ${fmt(totalCapacity)} capacity`} />
-              <StatsCard title="Utilisation"    value={`${overallUtil}%`}            icon={<BiSolidPackage />} color={overallUtil > 80 ? 'red' : 'blue'} sub="fill rate" />
-              <StatsCard title="Empty Sheds"    value={String(sheds.filter(s => s.status === 'empty').length)} icon={<GiBarn />} color="purple" sub="available" />
+              <StatsCard title={te.stats.totalSheds}    value={String(sheds.length)}        icon={<GiBarn />}        color="yellow"  sub={`${sheds.filter(s => s.status === 'active').length} ${te.shed.active}`} />
+              <StatsCard title={te.stats.totalChickens} value={fmt(totalChickens)}           icon={<GiBarn />}        color="green"   sub={`of ${fmt(totalCapacity)} ${te.shed.capacity}`} />
+              <StatsCard title={te.stats.utilisation}   value={`${overallUtil}%`}            icon={<BiSolidPackage />} color={overallUtil > 80 ? 'red' : 'blue'} sub={te.stats.fillRate} />
+              <StatsCard title={te.stats.emptySheds}    value={String(sheds.filter(s => s.status === 'empty').length)} icon={<GiBarn />} color="purple" sub={te.stats.available} />
             </div>
 
             {/* Shed quick cards */}
@@ -139,12 +140,12 @@ export default function DashboardPage() {
 
           {/* Stats Row 0b — Ponds */}
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Pond Overview</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.pondOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title="Total Ponds"    value={String(ponds.length)}              icon={<GiFishingBoat />} color="blue"   sub={`${ponds.filter(p => p.status === 'active').length} active`} />
-              <StatsCard title="Live Stock"      value={`${totalPondStock.toFixed(1)} kg`} icon={<GiFishingBoat />} color="green"  sub="estimated weight" />
-              <StatsCard title="Harvest Revenue" value={cur(pondHarvestRev)}               icon={<TbCurrencyRupee />} color="yellow" sub="cumulative" />
-              <StatsCard title="Pond P&L"        value={cur(pondHarvestRev - pondInputCost)} icon={<TbCurrencyRupee />} color={pondHarvestRev >= pondInputCost ? 'green' : 'red'} sub={`Cost: ${cur(pondInputCost)}`} />
+              <StatsCard title={te.stats.totalPonds}    value={String(ponds.length)}              icon={<GiFishingBoat />} color="blue"   sub={`${ponds.filter(p => p.status === 'active').length} ${te.pond.active}`} />
+              <StatsCard title={te.stats.liveStock}      value={`${totalPondStock.toFixed(1)} kg`} icon={<GiFishingBoat />} color="green"  sub={te.pond.estimatedWt} />
+              <StatsCard title={te.stats.harvestRev}     value={cur(pondHarvestRev)}               icon={<TbCurrencyRupee />} color="yellow" sub={te.pond.cumulative} />
+              <StatsCard title={te.stats.pondPL}         value={cur(pondHarvestRev - pondInputCost)} icon={<TbCurrencyRupee />} color={pondHarvestRev >= pondInputCost ? 'green' : 'red'} sub={`${te.common.cost}: ${cur(pondInputCost)}`} />
             </div>
 
             {/* Pond quick cards */}
@@ -171,23 +172,23 @@ export default function DashboardPage() {
 
           {/* Stats Row 1 — Feed */}
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Feed Overview</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.feedOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title="Feed Imported"  value={`${fmt(feedImported)} kg`} icon={<FaWheatAwn />} color="green"  sub="Total received" />
-              <StatsCard title="Feed Exported"  value={`${fmt(feedExported)} kg`} icon={<FaWheatAwn />} color="yellow" sub="Total dispatched" />
-              <StatsCard title="Feed Stock"     value={`${fmt(feedStock)} kg`}    icon={<BiSolidPackage />} color="blue" sub="Current inventory" />
-              <StatsCard title="Feed P&L"       value={cur(feedRevenue - feedCost)} icon={<TbCurrencyRupee />} color={feedRevenue >= feedCost ? 'green' : 'red'} sub={`Cost: ${cur(feedCost)}`} />
+              <StatsCard title={te.stats.feedImported}  value={`${fmt(feedImported)} kg`} icon={<FaWheatAwn />} color="green"  sub={te.stats.totalReceived} />
+              <StatsCard title={te.stats.feedExported}  value={`${fmt(feedExported)} kg`} icon={<FaWheatAwn />} color="yellow" sub={te.stats.totalDispatched} />
+              <StatsCard title={te.stats.feedStock}     value={`${fmt(feedStock)} kg`}    icon={<BiSolidPackage />} color="blue" sub={te.stats.currentInventory} />
+              <StatsCard title={te.stats.feedPL}        value={cur(feedRevenue - feedCost)} icon={<TbCurrencyRupee />} color={feedRevenue >= feedCost ? 'green' : 'red'} sub={`${te.common.cost}: ${cur(feedCost)}`} />
             </div>
           </section>
 
           {/* Stats Row 2 — Eggs */}
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Egg Overview</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">{te.dashboard.eggOverview}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatsCard title="Eggs Imported"  value={`${fmt(eggImported)} trays`}  icon={<MdOutlineEgg />} color="green"  sub={`${fmt(eggImported * 30)} eggs`} />
-              <StatsCard title="Eggs Exported"  value={`${fmt(eggExported)} trays`}  icon={<MdOutlineEgg />} color="yellow" sub={`${fmt(eggExported * 30)} eggs`} />
-              <StatsCard title="Egg Stock"      value={`${fmt(eggStock)} trays`}      icon={<BiSolidPackage />} color="blue" sub={`${fmt(eggStock * 30)} eggs`} />
-              <StatsCard title="Egg Revenue"    value={cur(eggRevenue)}               icon={<TbCurrencyRupee />} color="purple" sub={`Cost: ${cur(eggCost)}`} />
+              <StatsCard title={te.stats.eggImported}  value={`${fmt(eggImported)} ట్రేలు`}  icon={<MdOutlineEgg />} color="green"  sub={`${fmt(eggImported * 30)} గుడ్లు`} />
+              <StatsCard title={te.stats.eggExported}  value={`${fmt(eggExported)} ట్రేలు`}  icon={<MdOutlineEgg />} color="yellow" sub={`${fmt(eggExported * 30)} గుడ్లు`} />
+              <StatsCard title={te.stats.eggStock}      value={`${fmt(eggStock)} ట్రేలు`}      icon={<BiSolidPackage />} color="blue" sub={`${fmt(eggStock * 30)} గుడ్లు`} />
+              <StatsCard title={te.stats.eggRevenue}    value={cur(eggRevenue)}               icon={<TbCurrencyRupee />} color="purple" sub={`${te.common.cost}: ${cur(eggCost)}`} />
             </div>
           </section>
 
@@ -200,14 +201,14 @@ export default function DashboardPage() {
           {/* Net P&L */}
           <div className="card flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Overall Net Profit / Loss</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{te.dashboard.overallPL}</p>
               <p className={`text-3xl font-bold font-heading mt-1 ${netProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                 {cur(netProfit)}
               </p>
             </div>
             <div className="text-right text-sm text-gray-500 space-y-1">
-              <p>Total Revenue: <span className="font-semibold text-gray-800">{cur(feedRevenue + eggRevenue)}</span></p>
-              <p>Total Cost:    <span className="font-semibold text-gray-800">{cur(feedCost + eggCost)}</span></p>
+              <p>{te.dashboard.totalRevenue}: <span className="font-semibold text-gray-800">{cur(feedRevenue + eggRevenue)}</span></p>
+              <p>{te.dashboard.totalCost}:    <span className="font-semibold text-gray-800">{cur(feedCost + eggCost)}</span></p>
             </div>
           </div>
 
@@ -216,11 +217,11 @@ export default function DashboardPage() {
             {/* Recent Feed */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-heading font-semibold text-gray-800">Recent Feed Transactions</h3>
-                <Link href="/feed" className="text-sm text-brand-500 hover:underline">View all</Link>
+                <h3 className="font-heading font-semibold text-gray-800">{te.dashboard.recentFeed}</h3>
+                <Link href="/feed" className="text-sm text-brand-500 hover:underline">{te.common.viewAll}</Link>
               </div>
               {recentFeed.length === 0 ? (
-                <p className="text-sm text-gray-400">No transactions yet</p>
+                <p className="text-sm text-gray-400">{te.common.noData}</p>
               ) : (
                 <div className="space-y-2">
                   {recentFeed.map(t => (
@@ -242,11 +243,11 @@ export default function DashboardPage() {
             {/* Recent Eggs */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-heading font-semibold text-gray-800">Recent Egg Transactions</h3>
-                <Link href="/eggs" className="text-sm text-brand-500 hover:underline">View all</Link>
+                <h3 className="font-heading font-semibold text-gray-800">{te.dashboard.recentEggs}</h3>
+                <Link href="/eggs" className="text-sm text-brand-500 hover:underline">{te.common.viewAll}</Link>
               </div>
               {recentEggs.length === 0 ? (
-                <p className="text-sm text-gray-400">No transactions yet</p>
+                <p className="text-sm text-gray-400">{te.common.noData}</p>
               ) : (
                 <div className="space-y-2">
                   {recentEggs.map(t => (
