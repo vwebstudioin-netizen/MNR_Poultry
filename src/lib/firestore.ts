@@ -14,7 +14,7 @@ import {
   getDoc,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { FeedTransaction, EggTransaction, Shed, ChickenMovement } from '@/types'
+import type { FeedTransaction, EggTransaction, Shed, ChickenMovement, Pond, PondTransaction } from '@/types'
 
 // ─── Collections ────────────────────────────────────────────────────────────
 const FEED_COL = 'feed_transactions'
@@ -139,4 +139,63 @@ export async function getChickenMovements(shedId?: string): Promise<ChickenMovem
       createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
     } as ChickenMovement
   })
+}
+
+// ─── Ponds ────────────────────────────────────────────────────────────────────
+const POND_COL      = 'ponds'
+const POND_TX_COL   = 'pond_transactions'
+
+export async function addPond(data: Omit<Pond, 'id' | 'createdAt' | 'updatedAt'>) {
+  return addDoc(collection(db, POND_COL), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function getPonds(): Promise<Pond[]> {
+  const snap = await getDocs(query(collection(db, POND_COL), orderBy('name', 'asc')))
+  return snap.docs.map(d => {
+    const data = d.data()
+    return {
+      ...data,
+      id: d.id,
+      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+      updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+    } as Pond
+  })
+}
+
+export async function updatePond(id: string, data: Partial<Pond>) {
+  return updateDoc(doc(db, POND_COL, id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deletePond(id: string) {
+  return deleteDoc(doc(db, POND_COL, id))
+}
+
+export async function addPondTransaction(data: Omit<PondTransaction, 'id' | 'createdAt'>) {
+  return addDoc(collection(db, POND_TX_COL), {
+    ...data,
+    createdAt: serverTimestamp(),
+  })
+}
+
+export async function getPondTransactions(pondId?: string): Promise<PondTransaction[]> {
+  const q = pondId
+    ? query(collection(db, POND_TX_COL), where('pondId', '==', pondId), orderBy('date', 'desc'))
+    : query(collection(db, POND_TX_COL), orderBy('date', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => {
+    const data = d.data()
+    return {
+      ...data,
+      id: d.id,
+      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+    } as PondTransaction
+  })
+}
+
+export async function deletePondTransaction(id: string) {
+  return deleteDoc(doc(db, POND_TX_COL, id))
 }

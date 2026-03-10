@@ -96,3 +96,65 @@ export interface ChickenMovement {
   notes?: string
   createdAt?: string
 }
+
+// ─── Pond ─────────────────────────────────────────────────────────────────────
+export type PondType   = 'fish' | 'prawn'
+export type PondStatus = 'active' | 'harvested' | 'fallow' | 'maintenance'
+
+// Common fish species
+export type FishSpecies  = 'rohu' | 'catla' | 'tilapia' | 'catfish' | 'carp' | 'milkfish' | 'other'
+// Common prawn species
+export type PrawnSpecies = 'vannamei' | 'tiger-prawn' | 'freshwater-prawn' | 'other'
+
+export type PondTransactionType =
+  | 'seed-stock'   // fingerlings/seeds purchased & stocked INTO pond  (cost)
+  | 'feed-in'      // feed purchased & fed to the pond                  (cost)
+  | 'harvest'      // fish/prawns harvested & sold                       (revenue)
+  | 'mortality'    // deaths noted — reduces current stock              (loss)
+  | 'chemical'     // medicines, lime, probiotics, etc.                 (cost)
+
+export interface Pond {
+  id?: string
+  name: string                   // e.g. "Pond 1", "North Prawn Pond"
+  pondType: PondType
+  species: string                // FishSpecies | PrawnSpecies value
+  areaAcres: number
+  depthFt?: number
+  capacityKg: number             // max expected harvest capacity
+  currentStockKg: number         // estimated live weight right now
+  status: PondStatus
+  stockingDate?: string          // ISO date when seeds were first placed
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface PondTransaction {
+  id?: string
+  pondId: string
+  pondName: string
+  type: PondTransactionType
+  date: string
+
+  // Seed-stock specific
+  seedCount?: number             // number of fingerlings/seeds
+  avgWeightGrams?: number        // avg weight per seed (grams)
+
+  // Feed specific
+  feedType?: string              // e.g. 'pellets', 'organic', 'natural'
+
+  // Chemical specific
+  itemName?: string              // e.g. 'Lime', 'Probiotic XL'
+  unit?: string                  // e.g. 'kg', 'litre', 'packet'
+
+  // Shared quantity/pricing
+  quantityKg?: number            // harvest kg | feed kg | chemical weight
+  quantity?: number              // seed count or chemical pieces
+  pricePerUnit?: number          // price per kg / piece / unit
+  totalAmount?: number           // computed total cost or revenue
+
+  party?: string                 // supplier (costs) or buyer (harvest)
+  invoiceNo?: string
+  notes?: string
+  createdAt?: string
+}

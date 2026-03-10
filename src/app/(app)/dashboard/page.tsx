@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { getFeedTransactions, getEggTransactions, getSheds } from '@/lib/firestore'
-import type { FeedTransaction, EggTransaction, ChartDataPoint, Shed } from '@/types'
+import { getFeedTransactions, getEggTransactions, getSheds, getPonds, getPondTransactions } from '@/lib/firestore'
+import type { FeedTransaction, EggTransaction, ChartDataPoint, Shed, Pond, PondTransaction } from '@/types'
 import StatsCard from '@/components/StatsCard'
 import TransactionChart from '@/components/TransactionChart'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { MdOutlineEgg } from 'react-icons/md'
 import { TbCurrencyRupee } from 'react-icons/tb'
 import { BiSolidPackage } from 'react-icons/bi'
-import { GiBarn } from 'react-icons/gi'
+import { GiBarn, GiFishingBoat } from 'react-icons/gi'
 import { format, parseISO, startOfMonth } from 'date-fns'
 import Link from 'next/link'
 import { clsx } from 'clsx'
@@ -33,14 +33,20 @@ export default function DashboardPage() {
   const [feedTx, setFeedTx]       = useState<FeedTransaction[]>([])
   const [eggTx, setEggTx]         = useState<EggTransaction[]>([])
   const [sheds, setSheds]         = useState<Shed[]>([])
+  const [ponds, setPonds]         = useState<Pond[]>([])
+  const [pondTx, setPondTx]       = useState<PondTransaction[]>([])
   const [loading, setLoading]     = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [feed, eggs, shedData] = await Promise.all([getFeedTransactions(), getEggTransactions(), getSheds()])
+    const [feed, eggs, shedData, pondData, pondTxData] = await Promise.all([
+      getFeedTransactions(), getEggTransactions(), getSheds(), getPonds(), getPondTransactions(),
+    ])
     setFeedTx(feed)
     setEggTx(eggs)
     setSheds(shedData)
+    setPonds(pondData)
+    setPondTx(pondTxData)
     setLoading(false)
   }, [])
 
@@ -66,6 +72,11 @@ export default function DashboardPage() {
   const totalChickens  = sheds.reduce((a, s) => a + s.currentCount, 0)
   const overallUtil    = totalCapacity > 0 ? Math.round((totalChickens / totalCapacity) * 100) : 0
 
+  // ── Pond stats ──────────────────────────────────────────────────────────
+  const totalPondStock    = ponds.reduce((a, p) => a + p.currentStockKg, 0)
+  const pondHarvestRev    = pondTx.filter(t => t.type === 'harvest').reduce((a, t) => a + (t.totalAmount ?? 0), 0)
+  const pondInputCost     = pondTx.filter(t => ['seed-stock', 'feed-in', 'chemical'].includes(t.type)).reduce((a, t) => a + (t.totalAmount ?? 0), 0)
+
   const feedChart = buildChartData(feedTx, 'quantityKg')
   const eggChart  = buildChartData(eggTx,  'quantityTrays')
 
@@ -81,9 +92,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Overview of feed & egg operations</p>
+          <p className="text-sm text-gray-400 mt-0.5">Overview of all operations — sheds, ponds, feed &amp; eggs</p>
         </div>
         <div className="flex gap-3">
+          <Link href="/ponds" className="btn-secondary text-sm">+ Pond Entry</Link>
           <Link href="/feed" className="btn-secondary text-sm">+ Feed Entry</Link>
           <Link href="/eggs" className="btn-primary text-sm">+ Egg Entry</Link>
         </div>
@@ -115,6 +127,38 @@ export default function DashboardPage() {
                       <p className="text-xs text-gray-400 capitalize mb-2">{shed.shedType}</p>
                       <p className="text-lg font-bold text-gray-900">{fmt(shed.currentCount)}</p>
                       <p className="text-xs text-gray-400 mb-2">/ {fmt(shed.capacity)}</p>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div className={clsx('h-1.5 rounded-full', barColor)} style={{ width: `${u}%` }} />
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Stats Row 0b — Ponds */}
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Pond Overview</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatsCard title="Total Ponds"    value={String(ponds.length)}              icon={<GiFishingBoat />} color="blue"   sub={`${ponds.filter(p => p.status === 'active').length} active`} />
+              <StatsCard title="Live Stock"      value={`${totalPondStock.toFixed(1)} kg`} icon={<GiFishingBoat />} color="green"  sub="estimated weight" />
+              <StatsCard title="Harvest Revenue" value={cur(pondHarvestRev)}               icon={<TbCurrencyRupee />} color="yellow" sub="cumulative" />
+              <StatsCard title="Pond P&L"        value={cur(pondHarvestRev - pondInputCost)} icon={<TbCurrencyRupee />} color={pondHarvestRev >= pondInputCost ? 'green' : 'red'} sub={`Cost: ${cur(pondInputCost)}`} />
+            </div>
+
+            {/* Pond quick cards */}
+            {ponds.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {ponds.map(pond => {
+                  const u = pond.capacityKg > 0 ? Math.min(100, Math.round((pond.currentStockKg / pond.capacityKg) * 100)) : 0
+                  const barColor = u > 90 ? 'bg-red-400' : u > 60 ? 'bg-brand-400' : 'bg-teal-400'
+                  return (
+                    <Link key={pond.id} href="/ponds" className="card hover:shadow-md transition-shadow">
+                      <p className="font-heading font-bold text-gray-800 text-sm truncate">{pond.name}</p>
+                      <p className="text-xs text-gray-400 capitalize mb-2">{pond.pondType} · {pond.species.replace('-', ' ')}</p>
+                      <p className="text-lg font-bold text-gray-900">{pond.currentStockKg.toFixed(1)} kg</p>
+                      <p className="text-xs text-gray-400 mb-2">/ {pond.capacityKg} kg</p>
                       <div className="w-full bg-gray-100 rounded-full h-1.5">
                         <div className={clsx('h-1.5 rounded-full', barColor)} style={{ width: `${u}%` }} />
                       </div>

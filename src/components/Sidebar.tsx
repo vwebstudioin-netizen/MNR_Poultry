@@ -2,16 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GiChicken, GiBarn } from 'react-icons/gi'
+import { GiChicken, GiBarn, GiFishingBoat } from 'react-icons/gi'
 import { MdDashboard, MdOutlineEgg } from 'react-icons/md'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { clsx } from 'clsx'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: MdDashboard  },
-  { href: '/sheds',     label: 'Sheds',     icon: GiBarn       },
-  { href: '/feed',      label: 'Feed',      icon: FaWheatAwn   },
-  { href: '/eggs',      label: 'Eggs',      icon: MdOutlineEgg },
+  { href: '/dashboard', label: 'Dashboard', icon: MdDashboard    },
+  { href: '/sheds',     label: 'Sheds',     icon: GiBarn         },
+  { href: '/ponds',     label: 'Ponds',     icon: GiFishingBoat  },
+  { href: '/feed',      label: 'Feed',      icon: FaWheatAwn     },
+  { href: '/eggs',      label: 'Eggs',      icon: MdOutlineEgg   },
 ]
 
 export default function Sidebar() {
