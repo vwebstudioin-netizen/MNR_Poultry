@@ -5,6 +5,8 @@ import { getFeedTransactions, getEggTransactions, getSheds, getPonds, getPondTra
 import type { FeedTransaction, EggTransaction, ChartDataPoint, Shed, Pond, PondTransaction } from '@/types'
 import StatsCard from '@/components/StatsCard'
 import TransactionChart from '@/components/TransactionChart'
+import EggRateChart from '@/components/EggRateChart'
+import type { EggRatesResponse } from '@/app/api/egg-rates/route'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { MdOutlineEgg } from 'react-icons/md'
 import { TbCurrencyRupee } from 'react-icons/tb'
@@ -39,6 +41,20 @@ export default function DashboardPage() {
   const [pondTx, setPondTx]       = useState<PondTransaction[]>([])
   const [loading, setLoading]     = useState(true)
 
+  const [eggRates, setEggRates]       = useState<EggRatesResponse | null>(null)
+  const [eggRatesLoading, setEggRatesLoading] = useState(true)
+
+  const fetchEggRates = useCallback(async () => {
+    setEggRatesLoading(true)
+    try {
+      const res = await fetch('/api/egg-rates')
+      const json: EggRatesResponse = await res.json()
+      setEggRates(json)
+    } catch { /* ignore */ } finally {
+      setEggRatesLoading(false)
+    }
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true)
     const [feed, eggs, shedData, pondData, pondTxData] = await Promise.all([
@@ -53,6 +69,7 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { fetchEggRates() }, [fetchEggRates])
 
   // ── Computed stats ──────────────────────────────────────────────────────
   const feedImported   = feedTx.filter(t => t.type === 'import').reduce((a, t) => a + t.quantityKg, 0)
@@ -225,6 +242,13 @@ export default function DashboardPage() {
             <TransactionChart data={feedChart} title="Feed Transactions (kg)" unit="kg" />
             <TransactionChart data={eggChart}  title="Egg Transactions (trays)" unit="trays" importColor="#7c3aed" exportColor="#d8900f" />
           </div>
+
+          {/* India Egg Rate — NECC + Forecast */}
+          <EggRateChart
+            data={eggRates}
+            loading={eggRatesLoading}
+            onRefresh={fetchEggRates}
+          />
 
           {/* Net P&L */}
           <div className="card flex items-center justify-between">
