@@ -6,7 +6,9 @@ import type { FeedTransaction, EggTransaction, ChartDataPoint, Shed, Pond, PondT
 import StatsCard from '@/components/StatsCard'
 import TransactionChart from '@/components/TransactionChart'
 import EggRateChart from '@/components/EggRateChart'
+import PrawnRateChart from '@/components/PrawnRateChart'
 import type { EggRatesResponse } from '@/app/api/egg-rates/route'
+import type { PrawnRatesResponse } from '@/app/api/prawn-rates/route'
 import { FaWheatAwn } from 'react-icons/fa6'
 import { MdOutlineEgg } from 'react-icons/md'
 import { TbCurrencyRupee } from 'react-icons/tb'
@@ -43,6 +45,8 @@ export default function DashboardPage() {
 
   const [eggRates, setEggRates]       = useState<EggRatesResponse | null>(null)
   const [eggRatesLoading, setEggRatesLoading] = useState(true)
+  const [prawnRates, setPrawnRates]     = useState<PrawnRatesResponse | null>(null)
+  const [prawnRatesLoading, setPrawnRatesLoading] = useState(true)
 
   const fetchEggRates = useCallback(async () => {
     setEggRatesLoading(true)
@@ -52,6 +56,17 @@ export default function DashboardPage() {
       setEggRates(json)
     } catch { /* ignore */ } finally {
       setEggRatesLoading(false)
+    }
+  }, [])
+
+  const fetchPrawnRates = useCallback(async () => {
+    setPrawnRatesLoading(true)
+    try {
+      const res = await fetch('/api/prawn-rates')
+      const json: PrawnRatesResponse = await res.json()
+      setPrawnRates(json)
+    } catch { /* ignore */ } finally {
+      setPrawnRatesLoading(false)
     }
   }, [])
 
@@ -70,6 +85,7 @@ export default function DashboardPage() {
 
   useEffect(() => { load() }, [load])
   useEffect(() => { fetchEggRates() }, [fetchEggRates])
+  useEffect(() => { fetchPrawnRates() }, [fetchPrawnRates])
 
   // ── Computed stats ──────────────────────────────────────────────────────
   const feedImported   = feedTx.filter(t => t.type === 'import').reduce((a, t) => a + t.quantityKg, 0)
@@ -243,12 +259,19 @@ export default function DashboardPage() {
             <TransactionChart data={eggChart}  title="Egg Transactions (trays)" unit="trays" importColor="#7c3aed" exportColor="#d8900f" />
           </div>
 
-          {/* India Egg Rate — NECC + Forecast */}
-          <EggRateChart
-            data={eggRates}
-            loading={eggRatesLoading}
-            onRefresh={fetchEggRates}
-          />
+          {/* Market Rates — Egg + Prawn */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <EggRateChart
+              data={eggRates}
+              loading={eggRatesLoading}
+              onRefresh={fetchEggRates}
+            />
+            <PrawnRateChart
+              data={prawnRates}
+              loading={prawnRatesLoading}
+              onRefresh={fetchPrawnRates}
+            />
+          </div>
 
           {/* Net P&L */}
           <div className="card flex items-center justify-between">
